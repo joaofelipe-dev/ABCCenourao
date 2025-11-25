@@ -21,6 +21,18 @@ export default function Home() {
   const [dataIni, setDataIni] = useState(formatDateForInput(getYesterday()));
   const [dataFim, setDataFim] = useState(formatDateForInput(getYesterday()));
 
+  const COMPANY_NAMES = {
+    8: "SAN MARCO",
+    9: "BONFIM PAULISTA",
+    14: "JARDIM BOTANICO",
+    15: "SERTAOZINHO",
+    16: "TAMANDARE",
+    17: "NOVA ALIANCA",
+    18: "PORTUGAL",
+    20: "HENRIQUE DUMONT",
+    21: "JARDIM CALIFORNIA"
+  };
+
   // Filtros locais
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
   const [filtroProduto, setFiltroProduto] = useState("");
@@ -63,7 +75,7 @@ export default function Home() {
 
   // Dados filtrados
   const vendasFiltradas = vendas.filter(venda => {
-    const matchEmpresa = filtroEmpresa ? venda.EMPRESA.toString().includes(filtroEmpresa) : true;
+    const matchEmpresa = filtroEmpresa ? venda.EMPRESA.toString() === filtroEmpresa : true;
     const matchProduto = filtroProduto
       ? (venda.PRODUTO.toString().includes(filtroProduto) || venda["DESCRIÇÃO"].toLowerCase().includes(filtroProduto.toLowerCase()))
       : true;
@@ -133,18 +145,23 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">Empresa (ID)</label>
-              <input
-                type="text"
-                placeholder="Todas"
+              <label className="text-sm font-medium text-gray-700">Empresa</label>
+              <select
                 value={filtroEmpresa}
                 onChange={(e) => setFiltroEmpresa(e.target.value)}
-                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              />
+                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+              >
+                <option value="">Todas</option>
+                {Object.entries(COMPANY_NAMES).map(([id, name]) => (
+                  <option key={id} value={id}>
+                    {name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">Produto (ID ou Nome)</label>
+              <label className="text-sm font-medium text-gray-700">Produto (Código ou Nome)</label>
               <input
                 type="text"
                 placeholder="Todos"
@@ -195,7 +212,9 @@ export default function Home() {
 
                 {vendasFiltradas.slice(0, visibleCount).map((venda, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4 text-gray-600">{venda.EMPRESA}</td>
+                    <td className="p-4 text-gray-600">
+                      {COMPANY_NAMES[venda.EMPRESA] || venda.EMPRESA}
+                    </td>
                     <td className="p-4 font-medium text-gray-900">{venda.PRODUTO}</td>
                     <td className="p-4 text-gray-600">{venda["DESCRIÇÃO"]}</td>
                     <td className="p-4 text-right font-mono text-gray-700">{venda["QTDE VENDIDA"]}</td>
