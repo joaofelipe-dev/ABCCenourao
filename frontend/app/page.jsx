@@ -52,7 +52,13 @@ export default function Home() {
       const ini = formatDateForApi(dataIni);
       const fim = formatDateForApi(dataFim);
 
-      const res = await fetch(`http://localhost:3001/vendas?data_ini=${ini}&data_fim=${fim}`);
+      let apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+      if (!apiUrl && typeof window !== "undefined") {
+        apiUrl = `http://${window.location.hostname}:900`;
+      }
+
+      const res = await fetch(`${apiUrl}/vendas?data_ini=${ini}&data_fim=${fim}`);
 
       if (!res.ok) {
         const errData = await res.json();

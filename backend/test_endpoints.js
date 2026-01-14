@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:3001';
+const BASE_URL = 'http://localhost:900';
 
 async function testRoute(name, url) {
     console.log(`\n--- Testando: ${name} ---`);
