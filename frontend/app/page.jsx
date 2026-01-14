@@ -111,16 +111,16 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8 text-gray-900 font-sans">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-8 flex justify-between items-center">
+    <main className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <header className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Relatório de Vendas</h1>
-            <p className="text-gray-500 mt-2">Consulte as vendas detalhadas por período</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Relatório de Vendas</h1>
+            <p className="text-slate-500 mt-1 text-sm sm:text-base">Consulte as vendas detalhadas por período</p>
           </div>
           <Link
             href="/analytics"
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95"
           >
             <BarChart3 size={20} />
             Ver Dashboards
@@ -128,36 +128,36 @@ export default function Home() {
         </header>
 
         {/* Filtros */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">Data Inicial</label>
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Data Inicial</label>
               <input
                 type="date"
                 value={dataIni}
                 onChange={(e) => setDataIni(e.target.value)}
-                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-slate-50/50"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">Data Final</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Data Final</label>
               <input
                 type="date"
                 value={dataFim}
                 onChange={(e) => setDataFim(e.target.value)}
-                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-slate-50/50"
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">Empresa</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Empresa</label>
               <select
                 value={filtroEmpresa}
                 onChange={(e) => setFiltroEmpresa(e.target.value)}
-                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-slate-50/50 appearance-none"
               >
-                <option value="">Todas</option>
+                <option value="">Todas as Lojas</option>
                 {Object.entries(COMPANY_NAMES).map(([id, name]) => (
                   <option key={id} value={id}>
                     {name}
@@ -166,97 +166,132 @@ export default function Home() {
               </select>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-gray-700">Produto (Código ou Nome)</label>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Produto</label>
               <input
                 type="text"
-                placeholder="Todos"
+                placeholder="Nome ou código..."
                 value={filtroProduto}
                 onChange={(e) => setFiltroProduto(e.target.value)}
-                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-slate-50/50"
               />
             </div>
 
             <button
               onClick={buscarVendas}
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[42px]"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-blue-100 flex items-center justify-center gap-2 active:scale-95"
             >
-              {loading ? 'Buscando...' : 'Filtrar'}
+              {loading ? (
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : 'Aplicar Filtros'}
             </button>
           </div>
         </div>
 
         {/* Mensagem de Erro */}
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-100">
-            {error}
+          <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 border border-red-100 flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <span className="font-medium text-sm">{error}</span>
           </div>
         )}
 
-        {/* Tabela de Resultados */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold tracking-wider">
-                  <th className="p-4">Empresa</th>
-                  <th className="p-4">Produto</th>
-                  <th className="p-4">Descrição</th>
-                  <th className="p-4 text-right">Qtd. Vendida</th>
-                  <th className="p-4 text-right">Venda Bruta</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {vendasFiltradas.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan="5" className="p-8 text-center text-gray-500">
-                      Nenhum registro encontrado.
-                    </td>
+        {/* Lista/Tabela de Resultados */}
+        <div className="space-y-4">
+          {/* View de Desktop (Tabela) - Hidden on Mobile */}
+          <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] uppercase text-slate-400 font-bold tracking-widest">
+                    <th className="p-4">Empresa</th>
+                    <th className="p-4">Produto</th>
+                    <th className="p-4">Descrição</th>
+                    <th className="p-4 text-right">Qtd. Vendida</th>
+                    <th className="p-4 text-right">Venda Bruta</th>
                   </tr>
-                )}
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {vendasFiltradas.length === 0 && !loading && (
+                    <tr>
+                      <td colSpan="5" className="p-12 text-center text-slate-400 italic font-medium">
+                        Nenhum registro encontrado para este filtro.
+                      </td>
+                    </tr>
+                  )}
 
-                {vendasFiltradas.slice(0, visibleCount).map((venda, index) => (
-                  <tr key={index} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4 text-gray-600">
-                      {COMPANY_NAMES[venda.EMPRESA] || venda.EMPRESA}
-                    </td>
-                    <td className="p-4 font-medium text-gray-900">{venda.PRODUTO}</td>
-                    <td className="p-4 text-gray-600">{venda["DESCRIÇÃO"]}</td>
-                    <td className="p-4 text-right font-mono text-gray-700">{venda["QTDE VENDIDA"]}</td>
-                    <td className="p-4 text-right font-mono font-medium text-green-600">
-                      {formatCurrency(venda["VENDA BRUTA"])}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  {vendasFiltradas.slice(0, visibleCount).map((venda, index) => (
+                    <tr key={index} className="hover:bg-slate-50 transition-colors group">
+                      <td className="p-4 text-slate-600 text-sm">
+                        <span className="bg-slate-100 px-2 py-1 rounded text-xs font-semibold">
+                          {COMPANY_NAMES[venda.EMPRESA] || venda.EMPRESA}
+                        </span>
+                      </td>
+                      <td className="p-4 font-bold text-slate-900 text-sm tracking-tight">{venda.PRODUTO}</td>
+                      <td className="p-4 text-slate-600 text-sm font-medium">{venda["DESCRIÇÃO"]}</td>
+                      <td className="p-4 text-right font-mono text-slate-500 text-sm">{venda["QTDE VENDIDA"]}</td>
+                      <td className="p-4 text-right font-mono font-bold text-emerald-600 text-sm">
+                        {formatCurrency(venda["VENDA BRUTA"])}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* View de Mobile (Cards) - Hidden on Desktop */}
+          <div className="md:hidden space-y-3">
+            {vendasFiltradas.length === 0 && !loading && (
+              <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-200 text-center text-slate-400 font-medium">
+                Nenhum registro encontrado.
+              </div>
+            )}
+
+            {vendasFiltradas.slice(0, visibleCount).map((venda, index) => (
+              <div key={index} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 active:bg-slate-50 transition-colors">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50 px-2 py-1 rounded-md">
+                    {COMPANY_NAMES[venda.EMPRESA] || `Loja ${venda.EMPRESA}`}
+                  </span>
+                  <span className="text-sm font-bold text-emerald-600 font-mono">
+                    {formatCurrency(venda["VENDA BRUTA"])}
+                  </span>
+                </div>
+                <h3 className="font-bold text-slate-900 leading-tight mb-1">{venda["DESCRIÇÃO"]}</h3>
+                <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-50">
+                  <span className="text-xs font-medium text-slate-500">Cód: {venda.PRODUTO}</span>
+                  <span className="text-xs font-bold text-slate-700">Qtd: {venda["QTDE VENDIDA"]}</span>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Botão Carregar Mais */}
           {vendasFiltradas.length > visibleCount && (
-            <div className="p-4 border-t border-gray-100 flex justify-center bg-white">
+            <div className="pt-2 pb-6 flex justify-center">
               <button
                 onClick={() => setVisibleCount(prev => prev + 500)}
-                className="text-blue-600 hover:text-blue-800 font-medium text-sm hover:underline transition-all"
+                className="w-full sm:w-auto bg-white hover:bg-slate-50 text-blue-600 font-semibold text-sm px-8 py-3 rounded-xl border border-blue-100 shadow-sm transition-all active:scale-95"
               >
-                Carregar mais resultados ({vendasFiltradas.length - visibleCount} restantes)
+                Carregar mais {vendasFiltradas.length - visibleCount} itens
               </button>
             </div>
           )}
 
-          {/* Rodapé da Tabela (Totais) */}
+          {/* Rodapé da Tabela (Totais) - Sticky position for mobile */}
           {vendasFiltradas.length > 0 && (
-            <div className="bg-gray-50 p-4 border-t border-gray-100 flex justify-end gap-8 text-sm">
-              <div>
-                <span className="text-gray-500 mr-2">Total Itens:</span>
-                <span className="font-bold text-gray-900">
-                  {vendasFiltradas.reduce((acc, curr) => acc + curr["QTDE VENDIDA"], 0)}
+            <div className="sticky bottom-4 left-0 right-0 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex justify-between items-center sm:relative sm:bottom-0 sm:mt-6 sm:bg-white sm:text-slate-900 sm:border sm:border-slate-200">
+              <div className="flex flex-col sm:flex-row sm:gap-6">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-400">Total Itens</span>
+                <span className="text-lg sm:text-base font-bold sm:text-slate-900">
+                  {vendasFiltradas.reduce((acc, curr) => acc + curr["QTDE VENDIDA"], 0).toLocaleString()}
                 </span>
               </div>
-              <div>
-                <span className="text-gray-500 mr-2">Valor Total:</span>
-                <span className="font-bold text-green-600 text-lg">
+              <div className="flex flex-col items-end sm:flex-row sm:gap-6 sm:items-center">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-400">Valor Total</span>
+                <span className="text-xl sm:text-2xl font-black text-emerald-400 sm:text-emerald-600 tracking-tight">
                   {formatCurrency(vendasFiltradas.reduce((acc, curr) => acc + curr["VENDA BRUTA"], 0))}
                 </span>
               </div>

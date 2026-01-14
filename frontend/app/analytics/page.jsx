@@ -178,18 +178,18 @@ export default function AnalyticsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 p-8">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
 
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="space-y-1">
-                        <h2 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard Analítico</h2>
-                        <p className="text-slate-600">Visão geral das vendas do dia anterior.</p>
+                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">Dashboard Analítico</h2>
+                        <p className="text-slate-500 text-sm sm:text-base">Visão geral das vendas do período.</p>
                     </div>
                     <Link
                         href="/"
-                        className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900 bg-white px-4 py-2 rounded-md border shadow-sm transition-colors"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white px-5 py-3 sm:py-2.5 rounded-xl border border-slate-200 shadow-sm transition-all active:scale-95"
                     >
                         <ArrowLeft size={16} />
                         Voltar para Lista
@@ -197,36 +197,36 @@ export default function AnalyticsPage() {
                 </div>
 
                 {/* Filtros de Data */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex flex-col md:flex-row gap-4 items-end">
-                        <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-gray-700">Data Inicial</label>
+                <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Data Inicial</label>
                             <input
                                 type="date"
                                 value={dataIni}
                                 onChange={(e) => setDataIni(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-slate-50/50"
                             />
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-gray-700">Data Final</label>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Data Final</label>
                             <input
                                 type="date"
                                 value={dataFim}
                                 onChange={(e) => setDataFim(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-slate-50/50"
                             />
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                            <label className="text-sm font-medium text-gray-700">Empresa</label>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Empresa</label>
                             <select
                                 value={filtroEmpresa}
                                 onChange={(e) => setFiltroEmpresa(e.target.value)}
-                                className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-white"
+                                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-slate-50/50 appearance-none"
                             >
-                                <option value="">Todas</option>
+                                <option value="">Todas as Lojas</option>
                                 {Object.entries(COMPANY_NAMES).map(([id, name]) => (
                                     <option key={id} value={id}>
                                         {name}
@@ -238,72 +238,82 @@ export default function AnalyticsPage() {
                         <button
                             onClick={fetchData}
                             disabled={loading}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[42px]"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-md shadow-blue-100 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                         >
-                            {loading ? 'Atualizando...' : 'Atualizar Dashboard'}
+                            {loading ? (
+                                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : 'Atualizar'}
                         </button>
                     </div>
                 </div>
 
                 {/* KPI Cards */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    <Card className="rounded-2xl border-slate-200">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-700">Venda Bruta Total</CardTitle>
-                            <DollarSign className="h-4 w-4 text-green-700" />
+                            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Venda Bruta Total</CardTitle>
+                            <div className="p-2 bg-emerald-50 rounded-lg">
+                                <DollarSign className="h-4 w-4 text-emerald-600" />
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-slate-900">{formatCurrency(totalVendas)}</div>
-                            <p className="text-xs text-slate-600">+20.1% em relação à média (mock)</p>
+                            <div className="text-2xl font-black text-slate-900">{formatCurrency(totalVendas)}</div>
+                            <p className="text-[10px] font-bold text-emerald-600 mt-1 uppercase tracking-tight">Período selecionado</p>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="rounded-2xl border-slate-200">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-700">Itens Vendidos</CardTitle>
-                            <Package className="h-4 w-4 text-blue-700" />
+                            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Itens Vendidos</CardTitle>
+                            <div className="p-2 bg-blue-50 rounded-lg">
+                                <Package className="h-4 w-4 text-blue-600" />
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-slate-900">{totalItens.toLocaleString()}</div>
-                            <p className="text-xs text-slate-600">Unidades movimentadas</p>
+                            <div className="text-2xl font-black text-slate-900">{totalItens.toLocaleString()}</div>
+                            <p className="text-[10px] font-bold text-blue-600 mt-1 uppercase tracking-tight">Unidades totais</p>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="rounded-2xl border-slate-200">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-700">Preço Médio por Item</CardTitle>
-                            <TrendingUp className="h-4 w-4 text-purple-700" />
+                            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Ticket Médio/Item</CardTitle>
+                            <div className="p-2 bg-purple-50 rounded-lg">
+                                <TrendingUp className="h-4 w-4 text-purple-600" />
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold text-slate-900">
+                            <div className="text-2xl font-black text-slate-900">
                                 {totalItens > 0 ? formatCurrency(totalVendas / totalItens) : "R$ 0,00"}
                             </div>
-                            <p className="text-xs text-slate-600">Por item vendido</p>
+                            <p className="text-[10px] font-bold text-purple-600 mt-1 uppercase tracking-tight">Média por unidade</p>
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="rounded-2xl border-slate-200">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-slate-700">Data de Referência</CardTitle>
-                            <Calendar className="h-4 w-4 text-orange-700" />
+                            <CardTitle className="text-xs font-bold uppercase tracking-wider text-slate-500">Empresas Ativas</CardTitle>
+                            <div className="p-2 bg-orange-50 rounded-lg">
+                                <Calendar className="h-4 w-4 text-orange-600" />
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-xl font-bold text-slate-900">
-                                {formatDateForApi(dataIni)} - {formatDateForApi(dataFim)}
+                            <div className="text-2xl font-black text-slate-900">
+                                {companyPerformance.length}
                             </div>
-                            <p className="text-xs text-slate-600">Período selecionado</p>
+                            <p className="text-[10px] font-bold text-orange-600 mt-1 uppercase tracking-tight">Unidades com venda</p>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Main Chart Section - Full Width */}
-                <Card className="w-full">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>Top {topN} Produtos (Receita)</CardTitle>
+                <Card className="w-full rounded-2xl border-slate-200 overflow-hidden">
+                    <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-50 pb-6">
+                        <CardTitle className="text-lg font-bold">Top {topN} Produtos (Receita)</CardTitle>
                         <select
                             value={topN}
                             onChange={(e) => setTopN(Number(e.target.value))}
-                            className="text-sm border border-gray-300 rounded-md px-2 py-1 outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                            className="w-full sm:w-auto text-sm border border-slate-200 rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 font-semibold"
                         >
                             <option value={5}>Top 5</option>
                             <option value={10}>Top 10</option>
@@ -311,33 +321,33 @@ export default function AnalyticsPage() {
                             <option value={20}>Top 20</option>
                         </select>
                     </CardHeader>
-                    <CardContent className="pl-2">
-                        <div className="h-[400px] w-full">
+                    <CardContent className="p-4 sm:p-6">
+                        <div className="h-[300px] sm:h-[400px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={topProdutos} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                <BarChart data={topProdutos} margin={{ top: 20, right: 10, left: -10, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                     <XAxis
                                         dataKey="name"
-                                        stroke="#888888"
-                                        fontSize={12}
+                                        stroke="#94a3b8"
+                                        fontSize={10}
                                         tickLine={false}
                                         axisLine={false}
                                         interval={0}
-                                        angle={topN > 10 ? -45 : 0}
-                                        textAnchor={topN > 10 ? "end" : "middle"}
-                                        height={topN > 10 ? 100 : 30}
+                                        angle={-45}
+                                        textAnchor="end"
+                                        height={80}
                                     />
                                     <YAxis
-                                        stroke="#888888"
-                                        fontSize={12}
+                                        stroke="#94a3b8"
+                                        fontSize={10}
                                         tickLine={false}
                                         axisLine={false}
-                                        tickFormatter={(value) => `R$${value}`}
+                                        tickFormatter={(value) => `R$${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`}
                                     />
                                     <Tooltip
                                         formatter={(value) => formatCurrency(value)}
-                                        cursor={{ fill: '#f3f4f6' }}
-                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        cursor={{ fill: '#f8fafc' }}
+                                        contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                                     />
                                     <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                                 </BarChart>
@@ -347,13 +357,13 @@ export default function AnalyticsPage() {
                 </Card>
 
                 {/* Secondary Charts Section */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                     {/* Vendas por Empresa */}
-                    <Card className="col-span-3 py-5 ">
-                        <CardHeader>
-                            <CardTitle>Vendas por Empresa</CardTitle>
+                    <Card className="rounded-2xl border-slate-200">
+                        <CardHeader className="border-b border-slate-50 pb-6">
+                            <CardTitle className="text-lg font-bold">Vendas por Empresa</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-6">
                             <div className="h-[300px] w-full flex items-center justify-center">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
@@ -363,84 +373,62 @@ export default function AnalyticsPage() {
                                             cy="50%"
                                             innerRadius={60}
                                             outerRadius={80}
-                                            paddingAngle={5}
+                                            paddingAngle={8}
                                             dataKey="value"
                                         >
                                             {vendasPorEmpresa.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={0} />
                                             ))}
                                         </Pie>
-                                        <Tooltip formatter={(value) => formatCurrency(value)} />
-                                        <Legend verticalAlign="bottom" height={36} />
+                                        <Tooltip
+                                            formatter={(value) => formatCurrency(value)}
+                                            contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}
+                                        />
+                                        <Legend
+                                            verticalAlign="bottom"
+                                            height={36}
+                                            iconType="circle"
+                                            wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '20px' }}
+                                        />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Bottom 5 Products */}
-                    <Card className="col-span-4">
-                        <CardHeader>
-                            <CardTitle>Produtos com Menor Receita (Bottom 5)</CardTitle>
+                    {/* Performance Table */}
+                    <Card className="rounded-2xl border-slate-200 overflow-hidden">
+                        <CardHeader className="border-b border-slate-50 pb-6">
+                            <CardTitle className="text-lg font-bold">Performance das Unidades</CardTitle>
                         </CardHeader>
-                        <CardContent className="pl-2">
-                            <div className="h-[300px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={bottomProdutos} layout="vertical">
-                                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
-                                        <XAxis type="number" hide />
-                                        <YAxis
-                                            dataKey="name"
-                                            type="category"
-                                            width={100}
-                                            tick={{ fontSize: 12 }}
-                                            interval={0}
-                                        />
-                                        <Tooltip
-                                            formatter={(value) => formatCurrency(value)}
-                                            cursor={{ fill: '#f3f4f6' }}
-                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                        />
-                                        <Bar dataKey="value" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={20} />
-                                    </BarChart>
-                                </ResponsiveContainer>
+                        <CardContent className="p-0">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-50/50 text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-100">
+                                            <th className="px-6 py-4">Empresa</th>
+                                            <th className="px-6 py-4 text-right">Receita</th>
+                                            <th className="px-6 py-4 text-right">Média</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {companyPerformance.map((company) => (
+                                            <tr key={company.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 font-bold text-slate-900">{company.name}</td>
+                                                <td className="px-6 py-4 text-right text-emerald-600 font-bold">
+                                                    {formatCurrency(company.totalSales)}
+                                                </td>
+                                                <td className="px-6 py-4 text-right text-slate-500 font-medium">
+                                                    {formatCurrency(company.avgTicket)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
-
-                {/* Company Performance Table - Full Width */}
-                <Card className="w-full">
-                    <CardHeader>
-                        <CardTitle>Detalhes por Empresa</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="overflow-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-2">Empresa</th>
-                                        <th className="px-4 py-2 text-right">Vendas</th>
-                                        <th className="px-4 py-2 text-right">Preço Médio</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {companyPerformance.map((company) => (
-                                        <tr key={company.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                            <td className="px-4 py-2 font-medium text-gray-900">{company.name}</td>
-                                            <td className="px-4 py-2 text-right text-green-700 font-medium">
-                                                {formatCurrency(company.totalSales)}
-                                            </td>
-                                            <td className="px-4 py-2 text-right text-gray-800">
-                                                {formatCurrency(company.avgTicket)}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </div >
     );
