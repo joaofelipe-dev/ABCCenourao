@@ -84,7 +84,6 @@ export default function AnalyticsPage() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
-    const searchParams = useSearchParams();
 
     // Configuração inicial: Dia anterior (Ontem)
     const getYesterday = () => {
