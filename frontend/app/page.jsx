@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, ChartLine } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 export default function Home() {
@@ -102,7 +102,7 @@ export default function Home() {
             if (s.filtroEmpresa) setFiltroEmpresa(s.filtroEmpresa);
             if (s.filtroDepartamento) setFiltroDepartamento(s.filtroDepartamento);
             if (s.filtroProduto) setFiltroProduto(s.filtroProduto);
-          } catch {}
+          } catch { }
         }
       }
       buscarVendas();
@@ -159,6 +159,7 @@ export default function Home() {
   };
 
   const analyticsHref = `/analytics?data_ini=${dataIni}&data_fim=${dataFim}${filtroEmpresa ? `&empresa=${filtroEmpresa}` : ""}${filtroDepartamento ? `&depto=${filtroDepartamento}` : ""}`;
+  const comparativoHref = `/comparativo?data_ini=${dataIni}&data_fim=${dataFim}${filtroEmpresa ? `&empresa=${filtroEmpresa}` : ""}${filtroDepartamento ? `&depto=${filtroDepartamento}` : ""}`;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
@@ -168,13 +169,22 @@ export default function Home() {
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Relatório de Vendas</h1>
             <p className="text-slate-500 mt-1 text-sm sm:text-base">Consulte as vendas detalhadas por período</p>
           </div>
-          <Link
-            href={analyticsHref}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95"
-          >
-            <BarChart3 size={20} />
-            Ver Dashboards
-          </Link>
+          <div className="flex flex-row gap-4">
+            <Link
+              href={analyticsHref}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95"
+            >
+              <BarChart3 size={20} />
+              Ver Dashboards
+            </Link>
+            <Link
+              href={comparativoHref}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95"
+            >
+              <ChartLine size={20} />
+              Ver Comparativos
+            </Link>
+          </div>
         </header>
 
         {/* Filtros */}
