@@ -1,11 +1,62 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import Link from "next/link";
 import { BarChart3, ChartLine } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
-export default function Home() {
+const SearchParamsInit = ({ setDataIni, setDataFim, setFiltroEmpresa, setFiltroDepartamento, setFiltroProduto, buscarVendas }) => {
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const pIni = searchParams.get("data_ini");
+    const pFim = searchParams.get("data_fim");
+    const pEmpresa = searchParams.get("empresa");
+    const pDepto = searchParams.get("depto");
+
+    let hasParams = false;
+
+    if (pIni) {
+      setDataIni(pIni);
+      hasParams = true;
+    }
+    if (pFim) {
+      setDataFim(pFim);
+      hasParams = true;
+    }
+    if (pEmpresa) {
+      setFiltroEmpresa(pEmpresa);
+      hasParams = true;
+    }
+    if (pDepto) {
+      setFiltroDepartamento(pDepto);
+      hasParams = true;
+    }
+
+    if (hasParams) {
+      // Pequeno delay para garantir que o estado foi atualizado antes de buscar
+      setTimeout(() => buscarVendas(), 0);
+    } else {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("abc_filters");
+        if (stored) {
+          try {
+            const s = JSON.parse(stored);
+            if (s.dataIni) setDataIni(s.dataIni);
+            if (s.dataFim) setDataFim(s.dataFim);
+            if (s.filtroEmpresa) setFiltroEmpresa(s.filtroEmpresa);
+            if (s.filtroDepartamento) setFiltroDepartamento(s.filtroDepartamento);
+            if (s.filtroProduto) setFiltroProduto(s.filtroProduto);
+          } catch { }
+        }
+      }
+      buscarVendas();
+    }
+  }, [searchParams, setDataIni, setDataFim, setFiltroEmpresa, setFiltroDepartamento, setFiltroProduto, buscarVendas]);
+
+  return null;
+};
+
+export default function Home() {
   const [vendas, setVendas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -48,7 +99,7 @@ export default function Home() {
     return `${day}/${month}/${year}`;
   };
 
-  const buscarVendas = async () => {
+  const buscarVendas = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -76,38 +127,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    const pIni = searchParams.get("data_ini");
-    const pFim = searchParams.get("data_fim");
-    const pEmpresa = searchParams.get("empresa");
-    const pDepto = searchParams.get("depto");
-
-    if (pIni) setDataIni(pIni);
-    if (pFim) setDataFim(pFim);
-    if (pEmpresa) setFiltroEmpresa(pEmpresa);
-    if (pDepto) setFiltroDepartamento(pDepto);
-
-    if (pIni || pFim || pEmpresa || pDepto) {
-      setTimeout(() => buscarVendas(), 0);
-    } else {
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("abc_filters");
-        if (stored) {
-          try {
-            const s = JSON.parse(stored);
-            if (s.dataIni) setDataIni(s.dataIni);
-            if (s.dataFim) setDataFim(s.dataFim);
-            if (s.filtroEmpresa) setFiltroEmpresa(s.filtroEmpresa);
-            if (s.filtroDepartamento) setFiltroDepartamento(s.filtroDepartamento);
-            if (s.filtroProduto) setFiltroProduto(s.filtroProduto);
-          } catch { }
-        }
-      }
-      buscarVendas();
-    }
-  }, [searchParams]);
+  }, [dataIni, dataFim]);
 
   // Dados filtrados
   const vendasFiltradas = vendas.filter(venda => {
@@ -123,8 +143,8 @@ export default function Home() {
     if (diffVenda !== 0) return diffVenda;
 
     // 2. Produto (Crescente)
-    if (a.PRODUTO < b.PRODUTO) return -1;
-    if (a.PRODUTO > b.PRODUTO) return 1;
+    if (a["DESCRIÇÃO"] < b["DESCRIÇÃO"]) return -1;
+    if (a["DESCRIÇÃO"] > b["DESCRIÇÃO"]) return 1;
 
     // 3. Empresa (Crescente)
     if (a.EMPRESA < b.EMPRESA) return -1;
@@ -163,6 +183,16 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
+      <Suspense fallback={null}>
+        <SearchParamsInit
+          setDataIni={setDataIni}
+          setDataFim={setDataFim}
+          setFiltroEmpresa={setFiltroEmpresa}
+          setFiltroDepartamento={setFiltroDepartamento}
+          setFiltroProduto={setFiltroProduto}
+          buscarVendas={buscarVendas}
+        />
+      </Suspense>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <header className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
