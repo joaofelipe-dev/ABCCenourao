@@ -2,8 +2,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 export default function Home() {
+  const searchParams = useSearchParams();
   const [vendas, setVendas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -77,8 +79,35 @@ export default function Home() {
   };
 
   useEffect(() => {
-    buscarVendas();
-  }, []);
+    const pIni = searchParams.get("data_ini");
+    const pFim = searchParams.get("data_fim");
+    const pEmpresa = searchParams.get("empresa");
+    const pDepto = searchParams.get("depto");
+
+    if (pIni) setDataIni(pIni);
+    if (pFim) setDataFim(pFim);
+    if (pEmpresa) setFiltroEmpresa(pEmpresa);
+    if (pDepto) setFiltroDepartamento(pDepto);
+
+    if (pIni || pFim || pEmpresa || pDepto) {
+      setTimeout(() => buscarVendas(), 0);
+    } else {
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("abc_filters");
+        if (stored) {
+          try {
+            const s = JSON.parse(stored);
+            if (s.dataIni) setDataIni(s.dataIni);
+            if (s.dataFim) setDataFim(s.dataFim);
+            if (s.filtroEmpresa) setFiltroEmpresa(s.filtroEmpresa);
+            if (s.filtroDepartamento) setFiltroDepartamento(s.filtroDepartamento);
+            if (s.filtroProduto) setFiltroProduto(s.filtroProduto);
+          } catch {}
+        }
+      }
+      buscarVendas();
+    }
+  }, [searchParams]);
 
   // Dados filtrados
   const vendasFiltradas = vendas.filter(venda => {
@@ -112,6 +141,25 @@ export default function Home() {
     }).format(value);
   };
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const payload = { dataIni, dataFim, filtroEmpresa, filtroDepartamento, filtroProduto };
+      localStorage.setItem("abc_filters", JSON.stringify(payload));
+    }
+  }, [dataIni, dataFim, filtroEmpresa, filtroDepartamento, filtroProduto]);
+
+  const clearFilters = () => {
+    const yesterday = formatDateForInput(getYesterday());
+    setDataIni(yesterday);
+    setDataFim(yesterday);
+    setFiltroEmpresa("");
+    setFiltroDepartamento("");
+    setFiltroProduto("");
+    setTimeout(() => buscarVendas(), 0);
+  };
+
+  const analyticsHref = `/analytics?data_ini=${dataIni}&data_fim=${dataFim}${filtroEmpresa ? `&empresa=${filtroEmpresa}` : ""}${filtroDepartamento ? `&depto=${filtroDepartamento}` : ""}`;
+
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
@@ -121,7 +169,7 @@ export default function Home() {
             <p className="text-slate-500 mt-1 text-sm sm:text-base">Consulte as vendas detalhadas por período</p>
           </div>
           <Link
-            href="/analytics"
+            href={analyticsHref}
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 sm:py-2.5 rounded-xl font-medium transition-all shadow-sm active:scale-95"
           >
             <BarChart3 size={20} />
@@ -203,6 +251,12 @@ export default function Home() {
               {loading ? (
                 <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : 'Aplicar Filtros'}
+            </button>
+            <button
+              onClick={clearFilters}
+              className="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 px-6 rounded-xl transition-all border border-slate-200 shadow-sm active:scale-95"
+            >
+              Limpar Filtros
             </button>
           </div>
         </div>

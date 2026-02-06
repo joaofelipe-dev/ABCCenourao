@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     BarChart,
     Bar,
@@ -48,6 +49,8 @@ const CardContent = ({ className, children }) => (
 export default function AnalyticsPage() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
     // Configuração inicial: Dia anterior (Ontem)
     const getYesterday = () => {
@@ -105,8 +108,39 @@ export default function AnalyticsPage() {
     };
 
     useEffect(() => {
+        const pIni = searchParams.get("data_ini");
+        const pFim = searchParams.get("data_fim");
+        const pEmpresa = searchParams.get("empresa");
+        const pDepto = searchParams.get("depto");
+
+        if (pIni) setDataIni(pIni);
+        if (pFim) setDataFim(pFim);
+        if (pEmpresa) setFiltroEmpresa(pEmpresa);
+        if (pDepto) setFiltroDepartamento(pDepto);
+
+        if (!(pIni || pFim || pEmpresa || pDepto)) {
+            if (typeof window !== "undefined") {
+                const stored = localStorage.getItem("abc_filters");
+                if (stored) {
+                    try {
+                        const s = JSON.parse(stored);
+                        if (s.dataIni) setDataIni(s.dataIni);
+                        if (s.dataFim) setDataFim(s.dataFim);
+                        if (s.filtroEmpresa) setFiltroEmpresa(s.filtroEmpresa);
+                        if (s.filtroDepartamento) setFiltroDepartamento(s.filtroDepartamento);
+                    } catch {}
+                }
+            }
+        }
         fetchData();
-    }, []);
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const payload = { dataIni, dataFim, filtroEmpresa, filtroDepartamento };
+            localStorage.setItem("abc_filters", JSON.stringify(payload));
+        }
+    }, [dataIni, dataFim, filtroEmpresa, filtroDepartamento]);
 
     // Filtrar dados por empresa e departamento se selecionados
     const dadosFiltrados = data.filter(item => {
@@ -124,9 +158,11 @@ export default function AnalyticsPage() {
         .sort((a, b) => b["VENDA BRUTA"] - a["VENDA BRUTA"])
         .slice(0, topN)
         .map(item => ({
-            name: item["DESCRIÇÃO"].length > 15 ? item["DESCRIÇÃO"].substring(0, 15) + '...' : item["DESCRIÇÃO"],
+            name: `${item.PRODUTO} - ${(COMPANY_NAMES[item.EMPRESA] || `EMPRESA ${item.EMPRESA}`)}`,
             full_name: item["DESCRIÇÃO"],
-            value: item["VENDA BRUTA"]
+            value: item["VENDA BRUTA"],
+            produto: item.PRODUTO,
+            empresa: COMPANY_NAMES[item.EMPRESA] || `EMPRESA ${item.EMPRESA}`
         }));
 
     // Bottom 5 Produtos (Menor Receita)
@@ -145,7 +181,7 @@ export default function AnalyticsPage() {
         const empresaId = curr.EMPRESA;
         const empresaNome = COMPANY_NAMES[empresaId] || `EMPRESA ${empresaId}`;
 
-        if (!acc[empresaId]) acc[empresaId] = { name: empresaNome, value: 0 };
+        if (!acc[empresaId]) acc[empresaId] = { id: empresaId, name: empresaNome, value: 0 };
         acc[empresaId].value += curr["VENDA BRUTA"];
         return acc;
     }, {}));
@@ -214,6 +250,34 @@ export default function AnalyticsPage() {
         }).format(value);
     };
 
+    const CustomTooltipTopProdutos = ({ active, payload }) => {
+        if (!active || !payload || payload.length === 0) return null;
+        const d = payload[0].payload;
+        return (
+            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-md">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Produto</div>
+                <div className="text-sm font-bold text-slate-900">{`${d.produto} — ${d.full_name}`}</div>
+                <div className="text-xs text-slate-600 mt-1">{`Loja: ${d.empresa}`}</div>
+                <div className="text-xs text-emerald-600 font-bold mt-2">{`Valor: ${formatCurrency(d.value)}`}</div>
+            </div>
+        );
+    };
+
+    const clearFilters = () => {
+        const yesterday = formatDateForInput(getYesterday());
+        setDataIni(yesterday);
+        setDataFim(yesterday);
+        setFiltroEmpresa("");
+        setFiltroDepartamento("");
+        fetchData();
+        const params = new URLSearchParams();
+        params.set("data_ini", yesterday);
+        params.set("data_fim", yesterday);
+        router.replace(`/analytics?${params.toString()}`);
+    };
+
+    const backHref = `/?data_ini=${dataIni}&data_fim=${dataFim}${filtroEmpresa ? `&empresa=${filtroEmpresa}` : ""}${filtroDepartamento ? `&depto=${filtroDepartamento}` : ""}`;
+
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
@@ -225,7 +289,7 @@ export default function AnalyticsPage() {
                         <p className="text-slate-500 text-sm sm:text-base">Visão geral das vendas do período.</p>
                     </div>
                     <Link
-                        href="/"
+                        href={backHref}
                         className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white px-5 py-3 sm:py-2.5 rounded-xl border border-slate-200 shadow-sm transition-all active:scale-95"
                     >
                         <ArrowLeft size={16} />
@@ -296,6 +360,12 @@ export default function AnalyticsPage() {
                             {loading ? (
                                 <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : 'Atualizar'}
+                        </button>
+                        <button
+                            onClick={clearFilters}
+                            className="w-full bg-white hover:bg-slate-50 text-slate-700 font-semibold py-3 px-6 rounded-xl transition-all border border-slate-200 shadow-sm active:scale-95"
+                        >
+                            Limpar Filtros
                         </button>
                     </div>
                 </div>
@@ -398,9 +468,8 @@ export default function AnalyticsPage() {
                                         tickFormatter={(value) => `R$${value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value}`}
                                     />
                                     <Tooltip
-                                        formatter={(value) => formatCurrency(value)}
                                         cursor={{ fill: '#f8fafc' }}
-                                        contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                        content={<CustomTooltipTopProdutos />}
                                     />
                                     <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                                 </BarChart>
@@ -431,7 +500,21 @@ export default function AnalyticsPage() {
                                         >
                                             {vendasPorEmpresa.map((entry, index) => {
                                                 const COLORS_EMPRESA = generateColors(vendasPorEmpresa.length);
-                                                return <Cell key={`cell-${index}`} fill={COLORS_EMPRESA[index]} strokeWidth={0} />;
+                                                return (
+                                                    <Cell
+                                                        key={`cell-${index}`}
+                                                        fill={COLORS_EMPRESA[index]}
+                                                        strokeWidth={0}
+                                                        onClick={() => {
+                                                            const params = new URLSearchParams();
+                                                            params.set("data_ini", dataIni);
+                                                            params.set("data_fim", dataFim);
+                                                            params.set("empresa", entry.id.toString());
+                                                            if (filtroDepartamento) params.set("depto", filtroDepartamento);
+                                                            router.push(`/?${params.toString()}`);
+                                                        }}
+                                                    />
+                                                );
                                             })}
                                         </Pie>
                                         <Tooltip
@@ -506,7 +589,21 @@ export default function AnalyticsPage() {
                                         >
                                             {vendasPorDepartamento.map((entry, index) => {
                                                 const COLORS_DEPTO = generateColors(vendasPorDepartamento.length);
-                                                return <Cell key={`cell-depto-${index}`} fill={COLORS_DEPTO[index]} strokeWidth={0} />;
+                                                return (
+                                                    <Cell
+                                                        key={`cell-depto-${index}`}
+                                                        fill={COLORS_DEPTO[index]}
+                                                        strokeWidth={0}
+                                                        onClick={() => {
+                                                            const params = new URLSearchParams();
+                                                            params.set("data_ini", dataIni);
+                                                            params.set("data_fim", dataFim);
+                                                            params.set("depto", entry.name);
+                                                            if (filtroEmpresa) params.set("empresa", filtroEmpresa);
+                                                            router.push(`/?${params.toString()}`);
+                                                        }}
+                                                    />
+                                                );
                                             })}
                                         </Pie>
                                         <Tooltip
