@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -44,6 +44,40 @@ const CardTitle = ({ className, children }) => (
 const CardContent = ({ className, children }) => (
     <div className={cn("p-6 pt-0", className)}>{children}</div>
 );
+
+// --- Helper to init from URL search params (wrapped in Suspense) ---
+const SearchParamsInit = ({ setDataIni, setDataFim, setFiltroEmpresa, setFiltroDepartamento, fetchData }) => {
+    const searchParams = useSearchParams();
+    useEffect(() => {
+        const pIni = searchParams.get("data_ini");
+        const pFim = searchParams.get("data_fim");
+        const pEmpresa = searchParams.get("empresa");
+        const pDepto = searchParams.get("depto");
+
+        if (pIni) setDataIni(pIni);
+        if (pFim) setDataFim(pFim);
+        if (pEmpresa) setFiltroEmpresa(pEmpresa);
+        if (pDepto) setFiltroDepartamento(pDepto);
+
+        if (!(pIni || pFim || pEmpresa || pDepto)) {
+            if (typeof window !== "undefined") {
+                const stored = localStorage.getItem("abc_filters");
+                if (stored) {
+                    try {
+                        const s = JSON.parse(stored);
+                        if (s.dataIni) setDataIni(s.dataIni);
+                        if (s.dataFim) setDataFim(s.dataFim);
+                        if (s.filtroEmpresa) setFiltroEmpresa(s.filtroEmpresa);
+                        if (s.filtroDepartamento) setFiltroDepartamento(s.filtroDepartamento);
+                    } catch {}
+                }
+            }
+        }
+
+        fetchData();
+    }, [searchParams]);
+    return null;
+};
 
 // --- Main Dashboard Page ---
 export default function AnalyticsPage() {
@@ -107,33 +141,8 @@ export default function AnalyticsPage() {
         }
     };
 
-    useEffect(() => {
-        const pIni = searchParams.get("data_ini");
-        const pFim = searchParams.get("data_fim");
-        const pEmpresa = searchParams.get("empresa");
-        const pDepto = searchParams.get("depto");
-
-        if (pIni) setDataIni(pIni);
-        if (pFim) setDataFim(pFim);
-        if (pEmpresa) setFiltroEmpresa(pEmpresa);
-        if (pDepto) setFiltroDepartamento(pDepto);
-
-        if (!(pIni || pFim || pEmpresa || pDepto)) {
-            if (typeof window !== "undefined") {
-                const stored = localStorage.getItem("abc_filters");
-                if (stored) {
-                    try {
-                        const s = JSON.parse(stored);
-                        if (s.dataIni) setDataIni(s.dataIni);
-                        if (s.dataFim) setDataFim(s.dataFim);
-                        if (s.filtroEmpresa) setFiltroEmpresa(s.filtroEmpresa);
-                        if (s.filtroDepartamento) setFiltroDepartamento(s.filtroDepartamento);
-                    } catch {}
-                }
-            }
-        }
-        fetchData();
-    }, [searchParams]);
+    // Search params initialization handled by SearchParamsInit (wrapped in Suspense)
+    // fetchData is called there after applying params/localStorage
 
     useEffect(() => {
         if (typeof window !== "undefined") {
@@ -281,6 +290,15 @@ export default function AnalyticsPage() {
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+        <Suspense fallback={null}>
+          <SearchParamsInit
+            setDataIni={setDataIni}
+            setDataFim={setDataFim}
+            setFiltroEmpresa={setFiltroEmpresa}
+            setFiltroDepartamento={setFiltroDepartamento}
+            fetchData={fetchData}
+          />
+        </Suspense>
 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
