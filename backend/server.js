@@ -41,6 +41,26 @@ app.get("/vendas", async (req, res) => {
       SELECT 
           v.produto,
           p.descritivo AS "DESCRIÇÃO",
+          CASE 
+              WHEN p.depto = 1  THEN 'ACOUGUE'
+              WHEN p.depto = 2  THEN 'FRIOS'
+              WHEN p.depto = 3  THEN 'HORTIFRUTI'
+              WHEN p.depto = 4  THEN 'EMPORIO'
+              WHEN p.depto = 5  THEN 'MERCEARIA'
+              WHEN p.depto = 6  THEN 'PANIFICACAO'
+              WHEN p.depto = 7  THEN 'ROTISSERIE'
+              WHEN p.depto = 8  THEN 'CAFETERIA'
+              WHEN p.depto = 9  THEN 'MATERIA PRIMA'
+              WHEN p.depto = 10 THEN 'IMOBILIZADO'
+              WHEN p.depto = 11 THEN 'USO E CONSUMO'
+              WHEN p.depto = 12 THEN 'EMBALAGENS'
+              WHEN p.depto = 13 THEN 'FLORICULTURA(ANTIGO)'
+              WHEN p.depto = 14 THEN 'COMBUSTIVEL'
+              WHEN p.depto = 15 THEN 'PROMOCAO'
+              WHEN p.depto = 16 THEN 'EXCLUIDOS'
+              WHEN p.depto = 17 THEN 'FLORICULTURA'
+              ELSE 'DEPARTAMENTO OUTROS'
+          END AS "DEPARTAMENTO",
           SUM(v.qtde) AS "QTDE VENDIDA",
           SUM(v.valor) AS "VENDA BRUTA",
           v.empresa
@@ -49,7 +69,7 @@ app.get("/vendas", async (req, res) => {
       WHERE v.data BETWEEN TO_DATE(:data_ini, 'DD/MM/YYYY') AND TO_DATE(:data_fim, 'DD/MM/YYYY')
         AND v.empresa <> 19
         AND v.valor > 0
-      GROUP BY v.produto, p.descritivo, v.empresa
+      GROUP BY v.produto, p.depto, p.descritivo, v.empresa
       ORDER BY SUM(v.valor) DESC, v.produto ASC, v.empresa ASC
     `;
 

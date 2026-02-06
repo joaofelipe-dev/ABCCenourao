@@ -36,6 +36,7 @@ export default function Home() {
   // Filtros locais
   const [filtroEmpresa, setFiltroEmpresa] = useState("");
   const [filtroProduto, setFiltroProduto] = useState("");
+  const [filtroDepartamento, setFiltroDepartamento] = useState("");
   const [visibleCount, setVisibleCount] = useState(500);
 
   // Formata DD/MM/YYYY para a API
@@ -82,10 +83,11 @@ export default function Home() {
   // Dados filtrados
   const vendasFiltradas = vendas.filter(venda => {
     const matchEmpresa = filtroEmpresa ? venda.EMPRESA.toString() === filtroEmpresa : true;
+    const matchDepartamento = filtroDepartamento ? venda["DEPARTAMENTO"] === filtroDepartamento : true;
     const matchProduto = filtroProduto
       ? (venda.PRODUTO.toString().includes(filtroProduto) || venda["DESCRIÇÃO"].toLowerCase().includes(filtroProduto.toLowerCase()))
       : true;
-    return matchEmpresa && matchProduto;
+    return matchEmpresa && matchDepartamento && matchProduto;
   }).sort((a, b) => {
     // 1. Venda Bruta (Decrescente)
     const diffVenda = b["VENDA BRUTA"] - a["VENDA BRUTA"];
@@ -129,7 +131,7 @@ export default function Home() {
 
         {/* Filtros */}
         <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Data Inicial</label>
               <input
@@ -161,6 +163,22 @@ export default function Home() {
                 {Object.entries(COMPANY_NAMES).map(([id, name]) => (
                   <option key={id} value={id}>
                     {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Departamento</label>
+              <select
+                value={filtroDepartamento}
+                onChange={(e) => setFiltroDepartamento(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-slate-50/50 appearance-none"
+              >
+                <option value="">Todos os Departamentos</option>
+                {Array.from(new Set(vendas.map(v => v["DEPARTAMENTO"]))).sort().map((depto) => (
+                  <option key={depto} value={depto}>
+                    {depto}
                   </option>
                 ))}
               </select>
@@ -208,6 +226,7 @@ export default function Home() {
                     <th className="p-4">Empresa</th>
                     <th className="p-4">Produto</th>
                     <th className="p-4">Descrição</th>
+                    <th className="p-4">Departamento</th>
                     <th className="p-4 text-right">Qtd. Vendida</th>
                     <th className="p-4 text-right">Venda Bruta</th>
                   </tr>
@@ -230,6 +249,11 @@ export default function Home() {
                       </td>
                       <td className="p-4 font-bold text-slate-900 text-sm tracking-tight">{venda.PRODUTO}</td>
                       <td className="p-4 text-slate-600 text-sm font-medium">{venda["DESCRIÇÃO"]}</td>
+                      <td className="p-4">
+                        <span className="bg-slate-100 px-2 py-1 rounded text-xs font-semibold text-slate-600">
+                          {venda["DEPARTAMENTO"]}
+                        </span>
+                      </td>
                       <td className="p-4 text-right font-mono text-slate-500 text-sm">{venda["QTDE VENDIDA"]}</td>
                       <td className="p-4 text-right font-mono font-bold text-emerald-600 text-sm">
                         {formatCurrency(venda["VENDA BRUTA"])}

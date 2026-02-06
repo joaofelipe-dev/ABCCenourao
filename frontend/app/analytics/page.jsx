@@ -63,6 +63,7 @@ export default function AnalyticsPage() {
     const [dataFim, setDataFim] = useState(formatDateForInput(getYesterday()));
     const [topN, setTopN] = useState(5);
     const [filtroEmpresa, setFiltroEmpresa] = useState("");
+    const [filtroDepartamento, setFiltroDepartamento] = useState("");
 
     const COMPANY_NAMES = {
         8: "SAN MARCO",
@@ -107,10 +108,12 @@ export default function AnalyticsPage() {
         fetchData();
     }, []);
 
-    // Filtrar dados por empresa se selecionada
-    const dadosFiltrados = filtroEmpresa
-        ? data.filter(item => item.EMPRESA.toString() === filtroEmpresa)
-        : data;
+    // Filtrar dados por empresa e departamento se selecionados
+    const dadosFiltrados = data.filter(item => {
+        const matchEmpresa = filtroEmpresa ? item.EMPRESA.toString() === filtroEmpresa : true;
+        const matchDepartamento = filtroDepartamento ? item["DEPARTAMENTO"] === filtroDepartamento : true;
+        return matchEmpresa && matchDepartamento;
+    });
 
     // Processamento dos dados para os gráficos
     const totalVendas = dadosFiltrados.reduce((acc, curr) => acc + curr["VENDA BRUTA"], 0);
@@ -147,6 +150,14 @@ export default function AnalyticsPage() {
         return acc;
     }, {}));
 
+    // Vendas por Departamento
+    const vendasPorDepartamento = Object.values(dadosFiltrados.reduce((acc, curr) => {
+        const depto = curr["DEPARTAMENTO"];
+        if (!acc[depto]) acc[depto] = { name: depto, value: 0 };
+        acc[depto].value += curr["VENDA BRUTA"];
+        return acc;
+    }, {})).sort((a, b) => b.value - a.value);
+
     // Tabela de Performance por Empresa
     const companyPerformance = Object.values(dadosFiltrados.reduce((acc, curr) => {
         const empresaId = curr.EMPRESA;
@@ -168,7 +179,33 @@ export default function AnalyticsPage() {
         avgTicket: company.totalItems > 0 ? company.totalSales / company.totalItems : 0
     })).sort((a, b) => b.totalSales - a.totalSales);
 
-    const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
+    // Tabela de Performance por Departamento
+    const departmentPerformance = Object.values(dadosFiltrados.reduce((acc, curr) => {
+        const depto = curr["DEPARTAMENTO"];
+        if (!acc[depto]) {
+            acc[depto] = {
+                id: depto,
+                name: depto,
+                totalSales: 0,
+                totalItems: 0
+            };
+        }
+        acc[depto].totalSales += curr["VENDA BRUTA"];
+        acc[depto].totalItems += curr["QTDE VENDIDA"];
+        return acc;
+    }, {})).map(dept => ({
+        ...dept,
+        avgTicket: dept.totalItems > 0 ? dept.totalSales / dept.totalItems : 0
+    })).sort((a, b) => b.totalSales - a.totalSales);
+
+    const generateColors = (n) => {
+        const colors = [];
+        for (let i = 0; i < n; i++) {
+            const hue = Math.round((360 / n) * i);
+            colors.push(`hsl(${hue}, 70%, 55%)`);
+        }
+        return colors;
+    };
 
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('pt-BR', {
@@ -198,7 +235,7 @@ export default function AnalyticsPage() {
 
                 {/* Filtros de Data */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                         <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Data Inicial</label>
                             <input
@@ -230,6 +267,22 @@ export default function AnalyticsPage() {
                                 {Object.entries(COMPANY_NAMES).map(([id, name]) => (
                                     <option key={id} value={id}>
                                         {name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 ml-1">Departamento</label>
+                            <select
+                                value={filtroDepartamento}
+                                onChange={(e) => setFiltroDepartamento(e.target.value)}
+                                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all bg-slate-50/50 appearance-none"
+                            >
+                                <option value="">Todos os Departamentos</option>
+                                {Array.from(new Set(data.map(d => d["DEPARTAMENTO"]))).sort().map((depto) => (
+                                    <option key={depto} value={depto}>
+                                        {depto}
                                     </option>
                                 ))}
                             </select>
@@ -376,9 +429,10 @@ export default function AnalyticsPage() {
                                             paddingAngle={8}
                                             dataKey="value"
                                         >
-                                            {vendasPorEmpresa.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} strokeWidth={0} />
-                                            ))}
+                                            {vendasPorEmpresa.map((entry, index) => {
+                                                const COLORS_EMPRESA = generateColors(vendasPorEmpresa.length);
+                                                return <Cell key={`cell-${index}`} fill={COLORS_EMPRESA[index]} strokeWidth={0} />;
+                                            })}
                                         </Pie>
                                         <Tooltip
                                             formatter={(value) => formatCurrency(value)}
@@ -420,6 +474,81 @@ export default function AnalyticsPage() {
                                                 </td>
                                                 <td className="px-6 py-4 text-right text-slate-500 font-medium">
                                                     {formatCurrency(company.avgTicket)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Departments Section */}
+                <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                    {/* Vendas por Departamento */}
+                    <Card className="rounded-2xl border-slate-200">
+                        <CardHeader className="border-b border-slate-50 pb-6">
+                            <CardTitle className="text-lg font-bold">Vendas por Departamento</CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                            <div className="h-[300px] w-full flex items-center justify-center">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={vendasPorDepartamento}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={80}
+                                            paddingAngle={8}
+                                            dataKey="value"
+                                        >
+                                            {vendasPorDepartamento.map((entry, index) => {
+                                                const COLORS_DEPTO = generateColors(vendasPorDepartamento.length);
+                                                return <Cell key={`cell-depto-${index}`} fill={COLORS_DEPTO[index]} strokeWidth={0} />;
+                                            })}
+                                        </Pie>
+                                        <Tooltip
+                                            formatter={(value) => formatCurrency(value)}
+                                            contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}
+                                        />
+                                        <Legend
+                                            verticalAlign="bottom"
+                                            height={36}
+                                            iconType="circle"
+                                            wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '20px' }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Performance por Departamento */}
+                    <Card className="rounded-2xl border-slate-200 overflow-hidden">
+                        <CardHeader className="border-b border-slate-50 pb-6">
+                            <CardTitle className="text-lg font-bold">Performance por Departamento</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-50/50 text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-100">
+                                            <th className="px-6 py-4">Departamento</th>
+                                            <th className="px-6 py-4 text-right">Receita</th>
+                                            <th className="px-6 py-4 text-right">Média</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        {departmentPerformance.map((dept) => (
+                                            <tr key={dept.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 font-bold text-slate-900">{dept.name}</td>
+                                                <td className="px-6 py-4 text-right text-emerald-600 font-bold">
+                                                    {formatCurrency(dept.totalSales)}
+                                                </td>
+                                                <td className="px-6 py-4 text-right text-slate-500 font-medium">
+                                                    {formatCurrency(dept.avgTicket)}
                                                 </td>
                                             </tr>
                                         ))}
