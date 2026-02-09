@@ -49,9 +49,9 @@ const SearchParamsInit = ({ setDataIni, setDataFim, setFiltroEmpresa, setFiltroD
           } catch { }
         }
       }
-      buscarVendas();
+      setTimeout(() => buscarVendas(), 0);
     }
-  }, [searchParams, setDataIni, setDataFim, setFiltroEmpresa, setFiltroDepartamento, setFiltroProduto, buscarVendas]);
+  }, [searchParams]);
 
   return null;
 };
