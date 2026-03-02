@@ -321,6 +321,7 @@ export default function Home() {
                     <th className="p-4">Produto</th>
                     <th className="p-4">Descrição</th>
                     <th className="p-4">Departamento</th>
+                    <th className="p-4 text-right">Média</th>
                     <th className="p-4 text-right">Qtd. Vendida</th>
                     <th className="p-4 text-right">Venda Bruta</th>
                   </tr>
@@ -348,6 +349,7 @@ export default function Home() {
                           {venda["DEPARTAMENTO"]}
                         </span>
                       </td>
+                      <td className="p-4 text-right font-mono text-slate-500 text-sm">{formatCurrency(venda["VENDA BRUTA"] / venda["QTDE VENDIDA"])}</td>
                       <td className="p-4 text-right font-mono text-slate-500 text-sm">{venda["QTDE VENDIDA"]}</td>
                       <td className="p-4 text-right font-mono font-bold text-emerald-600 text-sm">
                         {formatCurrency(venda["VENDA BRUTA"])}

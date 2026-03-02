@@ -161,16 +161,24 @@ export default function AnalyticsPage() {
     const totalVendas = dadosFiltrados.reduce((acc, curr) => acc + curr["VENDA BRUTA"], 0);
     const totalItens = dadosFiltrados.reduce((acc, curr) => acc + curr["QTDE VENDIDA"], 0);
 
+    // Sum of sales by store for relative percentage later
+    const storeTotals = dadosFiltrados.reduce((acc, curr) => {
+        acc[curr.EMPRESA] = (acc[curr.EMPRESA] || 0) + curr["VENDA BRUTA"];
+        return acc;
+    }, {});
+
     // Top N Produtos
     const topProdutos = [...dadosFiltrados]
         .sort((a, b) => b["VENDA BRUTA"] - a["VENDA BRUTA"])
         .slice(0, topN)
         .map(item => ({
             name: `${item.PRODUTO} - ${(COMPANY_NAMES[item.EMPRESA] || `EMPRESA ${item.EMPRESA}`)}`,
+            short_name: item.PRODUTO,
             full_name: item["DESCRIÇÃO"],
             value: item["VENDA BRUTA"],
             produto: item.PRODUTO,
-            empresa: COMPANY_NAMES[item.EMPRESA] || `EMPRESA ${item.EMPRESA}`
+            empresa: COMPANY_NAMES[item.EMPRESA] || `EMPRESA ${item.EMPRESA}`,
+            storeTotal: storeTotals[item.EMPRESA]
         }));
 
     // Bottom 5 Produtos (Menor Receita)
@@ -261,12 +269,24 @@ export default function AnalyticsPage() {
     const CustomTooltipTopProdutos = ({ active, payload }) => {
         if (!active || !payload || payload.length === 0) return null;
         const d = payload[0].payload;
+        // Use storeTotal instead of global totalVendas
+        const percent = d.storeTotal > 0 ? ((d.value / d.storeTotal) * 100).toFixed(2) : "0.00";
         return (
-            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-md">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Produto</div>
-                <div className="text-sm font-bold text-slate-900">{`${d.produto} — ${d.full_name}`}</div>
-                <div className="text-xs text-slate-600 mt-1">{`Loja: ${d.empresa}`}</div>
-                <div className="text-xs text-emerald-600 font-bold mt-2">{`Valor: ${formatCurrency(d.value)}`}</div>
+            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-md min-w-[200px]">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 border-b border-slate-50 pb-1">Detalhes do Produto</div>
+                <div className="text-sm font-bold text-slate-900 leading-tight mb-2">{`${d.produto} — ${d.full_name}`}</div>
+                <div className="flex justify-between items-center text-xs text-slate-600 mb-0.5">
+                    <span>Loja:</span>
+                    <span className="font-semibold">{d.empresa}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs text-emerald-600 font-bold mt-2 pt-2 border-t border-slate-50">
+                    <span>Valor:</span>
+                    <span>{formatCurrency(d.value)}</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] text-slate-500 font-medium mt-1">
+                    <span>% na Loja:</span>
+                    <span className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">{percent}%</span>
+                </div>
             </div>
         );
     };
@@ -514,6 +534,7 @@ export default function AnalyticsPage() {
                                             outerRadius={80}
                                             paddingAngle={8}
                                             dataKey="value"
+
                                         >
                                             {vendasPorEmpresa.map((entry, index) => {
                                                 const COLORS_EMPRESA = generateColors(vendasPorEmpresa.length);
@@ -535,14 +556,16 @@ export default function AnalyticsPage() {
                                             })}
                                         </Pie>
                                         <Tooltip
-                                            formatter={(value) => formatCurrency(value)}
+                                            formatter={(value) => {
+                                                const percent = totalVendas > 0 ? ((value / totalVendas) * 100).toFixed(2) : "0.00";
+                                                return `${formatCurrency(value)} (${percent}%)`;
+                                            }}
                                             contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}
                                         />
                                         <Legend
                                             verticalAlign="bottom"
-                                            height={36}
                                             iconType="circle"
-                                            wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '20px' }}
+                                            wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '5px', height: 'fit-content' }}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>
@@ -562,21 +585,28 @@ export default function AnalyticsPage() {
                                         <tr className="bg-slate-50/50 text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-100">
                                             <th className="px-6 py-4">Empresa</th>
                                             <th className="px-6 py-4 text-right">Receita</th>
+                                            <th className="px-6 py-4 text-right">% Relativa</th>
                                             <th className="px-6 py-4 text-right">Média</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
-                                        {companyPerformance.map((company) => (
-                                            <tr key={company.id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-4 font-bold text-slate-900">{company.name}</td>
-                                                <td className="px-6 py-4 text-right text-emerald-600 font-bold">
-                                                    {formatCurrency(company.totalSales)}
-                                                </td>
-                                                <td className="px-6 py-4 text-right text-slate-500 font-medium">
-                                                    {formatCurrency(company.avgTicket)}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {companyPerformance.map((company) => {
+                                            const percent = totalVendas > 0 ? ((company.totalSales / totalVendas) * 100).toFixed(2) : "0.00";
+                                            return (
+                                                <tr key={company.id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-4 font-bold text-slate-900">{company.name}</td>
+                                                    <td className="px-6 py-4 text-right text-emerald-600 font-bold">
+                                                        {formatCurrency(company.totalSales)}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right text-slate-600 font-semibold">
+                                                        {percent}%
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right text-slate-500 font-medium">
+                                                        {formatCurrency(company.avgTicket)}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
@@ -624,14 +654,17 @@ export default function AnalyticsPage() {
                                             })}
                                         </Pie>
                                         <Tooltip
-                                            formatter={(value) => formatCurrency(value)}
+                                            formatter={(value) => {
+                                                const percent = totalVendas > 0 ? ((value / totalVendas) * 100).toFixed(2) : "0.00";
+                                                return `${formatCurrency(value)} (${percent}%)`;
+                                            }}
                                             contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0' }}
                                         />
                                         <Legend
                                             verticalAlign="bottom"
                                             height={36}
                                             iconType="circle"
-                                            wrapperStyle={{ fontSize: '11px', fontWeight: 'bold', paddingTop: '20px' }}
+                                            wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', paddingTop: '5px', height: 'fit-content' }}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>
@@ -651,21 +684,28 @@ export default function AnalyticsPage() {
                                         <tr className="bg-slate-50/50 text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-100">
                                             <th className="px-6 py-4">Departamento</th>
                                             <th className="px-6 py-4 text-right">Receita</th>
+                                            <th className="px-6 py-4 text-right">% Relativa</th>
                                             <th className="px-6 py-4 text-right">Média</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-50">
-                                        {departmentPerformance.map((dept) => (
-                                            <tr key={dept.id} className="hover:bg-slate-50/50 transition-colors">
-                                                <td className="px-6 py-4 font-bold text-slate-900">{dept.name}</td>
-                                                <td className="px-6 py-4 text-right text-emerald-600 font-bold">
-                                                    {formatCurrency(dept.totalSales)}
-                                                </td>
-                                                <td className="px-6 py-4 text-right text-slate-500 font-medium">
-                                                    {formatCurrency(dept.avgTicket)}
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {departmentPerformance.map((dept) => {
+                                            const percent = totalVendas > 0 ? ((dept.totalSales / totalVendas) * 100).toFixed(2) : "0.00";
+                                            return (
+                                                <tr key={dept.id} className="hover:bg-slate-50/50 transition-colors">
+                                                    <td className="px-6 py-4 font-bold text-slate-900">{dept.name}</td>
+                                                    <td className="px-6 py-4 text-right text-emerald-600 font-bold">
+                                                        {formatCurrency(dept.totalSales)}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right text-slate-600 font-semibold">
+                                                        {percent}%
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right text-slate-500 font-medium">
+                                                        {formatCurrency(dept.avgTicket)}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
