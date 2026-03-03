@@ -531,8 +531,8 @@ export default function AnalyticsPage() {
                                             cx="50%"
                                             cy="50%"
                                             innerRadius={60}
-                                            outerRadius={80}
-                                            paddingAngle={8}
+                                            outerRadius={100}
+                                            paddingAngle={0}
                                             dataKey="value"
 
                                         >
@@ -630,8 +630,8 @@ export default function AnalyticsPage() {
                                             cx="50%"
                                             cy="50%"
                                             innerRadius={60}
-                                            outerRadius={80}
-                                            paddingAngle={8}
+                                            outerRadius={100}
+                                            paddingAngle={0}
                                             dataKey="value"
                                         >
                                             {vendasPorDepartamento.map((entry, index) => {
